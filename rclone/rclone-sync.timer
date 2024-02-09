@@ -1,0 +1,12 @@
+[Unit]
+Description=Perform an rclone sync every weak-days.
+[Timer]
+#OnBootSec=1h
+#OnUnitActiveSec=3h
+#OnCalendar=*:15,45
+
+# run every day except sun,sat at given time
+OnCalendar=Mon..Fri *-*-* 10:00:00
+
+[Install]
+WantedBy=timers.target
