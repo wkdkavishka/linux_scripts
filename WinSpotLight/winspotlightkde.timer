@@ -1,0 +1,12 @@
+[Unit]
+Description=WinSpotlightKDE
+[Timer]
+#OnBootSec=1h
+#OnUnitActiveSec=3h
+#OnCalendar=*:15,45
+
+OnBootSec=0min
+Unit=winspotlightkde.service
+
+[Install]
+WantedBy=timers.target

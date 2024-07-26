@@ -1,0 +1,13 @@
+[Unit]
+Description=WinSpotlightKDE
+After=network-online.target
+
+
+[Service]
+Type=simple
+ExecStart=/home/wkdkavishka/scripts/winspotlightkde
+User=wkdkavishka
+
+
+[Install]
+WantedBy=default.target

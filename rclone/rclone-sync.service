@@ -1,0 +1,15 @@
+[Unit]
+Description=Sync files between different remotes via rclone
+
+[Service]
+#Type=simple
+#ExecStart=/home/wkdkavishka/scripts/rclone.sh
+ExecStart=/home/wkdkavishka/scripts/sync-google_photos.sh
+
+
+#ExecStart=/usr/bin/rclone sync 'One Drive': '/mnt/storage-500/One Drive'
+User=wkdkavishka
+
+
+[Install]
+WantedBy=default.target
