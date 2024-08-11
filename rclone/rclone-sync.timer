@@ -1,12 +1,13 @@
 [Unit]
-Description=Perform an rclone sync every weak-days.
+Description=Perform an rclone sync every weekday at 1 PM.
+
 [Timer]
 #OnBootSec=1h
 #OnUnitActiveSec=3h
 #OnCalendar=*:15,45
 
-# run every day except sun,sat at given time
-OnCalendar=Mon..Fri *-*-* 10:00:00
+# Run every weekday (Mon-Fri) at 13:00 (1 PM)
+OnCalendar=Mon..Fri *-*-* 13:00:00
 
 [Install]
 WantedBy=timers.target
