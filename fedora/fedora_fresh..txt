@@ -1,0 +1,20 @@
+To enable access to both the free and the nonfree repository use the following command:
+
+Fedora with dnf:
+
+sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+On Fedora, we default to use the openh264 library, so you need the repository to be explicitely enabled:
+
+sudo dnf config-manager --enable fedora-cisco-openh264
+Silverblue with rpm-ostree:
+
+sudo rpm-ostree install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+# You will have to reboot for the rpmfusion repositories to appear)
+RHEL or compatible like CentOS
+
+sudo dnf install --nogpgcheck https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm
+sudo dnf install --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$(rpm -E %rhel).noarch.rpm
+
+sudo dnf install libavcodec-freeworld ffmpeg --allowerasing
+
+###################################################################################################
