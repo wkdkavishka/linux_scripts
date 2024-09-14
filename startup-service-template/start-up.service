@@ -10,7 +10,6 @@ Description=My custom startup script
 # PIDFile=/run/my-service.pid
 
 ExecStart=/home/wkdkavishka/scripts/start-script.sh start
-#ExecStart=/bin/intel-undervolt daemon
 
 # ExecReload=/home/transang/startup.sh reload
 # ExecStop=/home/transang/startup.sh stop
