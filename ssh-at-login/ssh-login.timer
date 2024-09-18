@@ -1,0 +1,16 @@
+[Unit]
+Description=Add SSH key at login.
+
+[Timer]
+# Run 5 minutes after boot
+OnBootSec=1min
+
+#OnBootSec=1h
+#OnUnitActiveSec=3h
+#OnCalendar=*:15,45
+
+# Run every weekday (Mon-Fri) at 13:00 (1 PM)
+# OnCalendar=Mon..Fri *-*-* 13:00:00
+
+[Install]
+WantedBy=timers.target
