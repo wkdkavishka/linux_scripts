@@ -1,9 +1,4 @@
-#!/usr/bin/bash
-# ---------
-# rclone sync 'One Drive Master': '/mnt/storage-500/Cloud Storage/One Drive'
-#
-# rclone sync 'Google Drive Master': '/mnt/storage-500/Cloud Storage/Google Drive Master'
-#
-# rclone sync 'Google Drive': '/mnt/storage-500/Cloud Storage/Google Drive'
+#!/bin/bash
+# rclone sync from Google Photos to local storage
 
-rclone sync 'google-photos':media/by-day '/mnt/Storage/Cloud Storage/Google Photos/'  --verbose -P
+/usr/bin/rclone sync 'google-photos':media/by-day '/mnt/Storage/Cloud Storage/Google Photos/' --verbose -P

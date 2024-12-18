@@ -1,15 +1,16 @@
 [Unit]
-Description=Sync files between different remotes via rclone
+Description=Rclone Sync Service
+After=network.target
 
 [Service]
-#Type=simple
-#ExecStart=/home/wkdkavishka/scripts/rclone.sh
-ExecStart=/home/wkdkavishka/scripts/sync-google_photos.sh
-
-
-#ExecStart=/usr/bin/rclone sync 'One Drive': '/mnt/storage-500/One Drive'
+Type=simple
+ExecStart=/bin/bash /home/wkdk/scripts/rclone.sh
+Restart=on-failure
 User=wkdk
-
+Group=wkdk
+WorkingDirectory=/home/wkdk/scripts
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=HOME=/home/wkdk
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target

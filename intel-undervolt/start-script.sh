@@ -2,6 +2,8 @@
 # ---------
 systemctl start intel-undervolt-loop.service
 
+rclone sync 'google-photos':media/by-day '/mnt/Storage/Cloud Storage/Google Photos/'  --verbose -P
+
 #echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 #echo powersave | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
