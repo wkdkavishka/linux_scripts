@@ -1,0 +1,14 @@
+[Unit]
+Description=Add SSH key at startup
+After=network.target
+
+[Service]
+ExecStart=/home/wkdkavishka/scripts/ssh-login.sh
+User=wkdk
+Type=oneshot
+RemainAfterExit=yes
+# Environment=SSH_AUTH_SOCK=/run/user/1000/ssh-agent.socket
+
+
+[Install]
+WantedBy=multi-user.target

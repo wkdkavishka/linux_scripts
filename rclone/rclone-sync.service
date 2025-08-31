@@ -1,0 +1,15 @@
+[Unit]
+Description=Sync files between different remotes via rclone
+
+[Service]
+Type=simple
+ExecStart=rclone sync 'google-photos':media/by-day '/mnt/Storage/Cloud Storage/Google Photos/'  --verbose -P
+Restart=on-failure
+RestartSec=60
+
+#ExecStart=/usr/bin/rclone sync 'One Drive': '/mnt/storage-500/One Drive'
+User=wkdk
+
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Perform an rclone sync every weekday at 1 PM.
+
+[Timer]
+#OnBootSec=1h
+#OnUnitActiveSec=3h
+#OnCalendar=*:15,45
+
+# Run every weekday (Mon-Fri) at 13:00 (1 PM)
+# OnCalendar=Mon..Fri *-*-* 13:00:00
+OnCalendar=*:0/3:45
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,15 @@
+[Unit]
+Description=Rclone Bisync Service
+After=network.target
+
+[Service]
+Type=simple
+# ExecStart=/usr/bin/rclone bisync /mnt/Storage-ssd/G-Drive dkmaxhome-g_drive:rclone --resilient
+ExecStart=/etc/rclone-bisync.sh
+Restart=on-failure
+RestartSec=60
+
+User=wkdk
+
+[Install]
+WantedBy=default.target
