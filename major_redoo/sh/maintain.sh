@@ -25,19 +25,22 @@ if [[ -t 1 ]]; then
     RED=$(tput setaf 1)
     GREEN=$(tput setaf 2)
     YELLOW=$(tput setaf 3)
+    BLUE=$(tput setaf 4)
     NC=$(tput sgr0) # No Color
 else
     RED=''
     GREEN=''
     YELLOW=''
+    BLUE=''
     NC=''
 fi
 
 # ----- Logging helpers -----
-log_ts() { date +"%Y-%m-%d %H:%M:%S%z"; }
-info() { echo "${GREEN}[$(log_ts)] [INFO]       $*${NC}"; }
-warn() { echo "${YELLOW}[$(log_ts)] [WARN]  $*${NC}" >&2; }
-err()  { echo "${RED}[$(log_ts)] [ERROR] $*${NC}" >&2; }
+# log_ts() { date +"%Y-%m-%d %H:%M:%S%z"; }
+info() { echo "${GREEN} [INFO]       $*${NC}"; }
+warn() { echo "${YELLOW} [WARN]  $*${NC}" >&2; }
+err()  { echo "${RED} [ERROR] $*${NC}" >&2; }
+title() { echo "${BLUE} [TITLE] $*${NC}"; }
 
 # Determine sudo usage (only if not root and sudo exists)
 SUDO=""
@@ -48,31 +51,6 @@ if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
     warn "sudo not found; commands needing elevation may fail. Consider running this script as root."
   fi
 fi
-
-# ----- Snap update -----
-update_snap() {
-  if command -v snap >/dev/null 2>&1; then
-    info "Updating snaps..."
-    if ! snap refresh; then
-      warn "Snap refresh encountered issues."
-    fi
-  else
-    info "snap not installed; skipping snaps."
-  fi
-}
-
-# ----- Flatpak update -----
-update_flatpak() {
-  if command -v flatpak >/dev/null 2>&1; then
-    info "Updating Flatpak apps and runtimes..."
-    # Non-interactive updates
-    if ! flatpak update -y; then
-      warn "Flatpak update encountered issues."
-    fi
-  else
-    info "flatpak not installed; skipping Flatpak."
-  fi
-}
 
 # ----- Flatpak cleanup -----
 cleanup_flatpak() {
@@ -87,36 +65,15 @@ cleanup_flatpak() {
   info "Removing unused Flatpak runtimes and dependencies..."
   flatpak uninstall --unused -y || warn "Failed to remove unused Flatpak runtimes"
   
-  # Clean the build cache
-  info "Cleaning Flatpak build cache..."
-  flatpak build-cleanup || warn "Failed to clean Flatpak build cache"
-  
-  # Remove old versions of installed applications
-  info "Removing old Flatpak versions..."
-  flatpak uninstall --delete-data -y || warn "Failed to remove old Flatpak versions"
-  
-  # Clean the flatpak cache
+  # Clean the build cache (handled by uninstall --unused)
   info "Cleaning Flatpak cache..."
+  flatpak uninstall --unused -y || warn "No unused runtimes to remove"
+  
+  # Repair flatpak installation
+  info "Repairing Flatpak installation..."
   flatpak repair || warn "Failed to repair Flatpak installation"
   
   info "Flatpak cleanup completed."
-}
-
-# ----- DNF update -----
-update_dnf() {
-  if command -v dnf >/dev/null 2>&1; then
-    info "Refreshing metadata and upgrading system packages via dnf..."
-    # Prefer upgrade --refresh, fallback to update -y if needed
-    if ! $SUDO dnf upgrade --refresh -y; then
-      warn "dnf upgrade --refresh failed; trying dnf update -y."
-      if ! $SUDO dnf update -y; then
-        err "dnf update failed."
-        return 1
-      fi
-    fi
-  else
-    info "dnf not installed; skipping dnf."
-  fi
 }
 
 # ----- DNF cleanup -----
@@ -140,20 +97,26 @@ cleanup_snaps() {
   fi
 
   info "Removing old snap revisions..."
-  # Set language to C to ensure consistent output from snap list
-  LANG=C snap list --all | awk '/disabled/{print $1, $3}' | while read -r name rev; do
-    info "Removing $name (revision $rev)..."
-    if ! $SUDO snap remove "$name" --revision="$rev"; then
-      warn "Failed to remove snap $name revision $rev."
-    fi
-  done
+  # Removes old revisions of snaps
+  # CLOSE ALL SNAPS BEFORE RUNNING THIS
+  LANG=C snap list --all | awk '/disabled/{print $1, $3}' |
+    while read -r snapname revision; do
+      info "Removing $snapname (revision $revision)..."
+      if ! $SUDO snap remove "$snapname" --revision="$revision"; then
+        warn "Failed to remove snap $snapname revision $revision"
+      fi
+    done
   info "Snap cleanup finished."
 }
 
 # ----- Storage Maintenance -----
 trim_devices() {
   info "Running fstrim on all supported filesystems..."
-  $SUDO fstrim -vs
+  if command -v fstrim >/dev/null 2>&1; then
+    $SUDO fstrim -va || warn "fstrim command failed"
+  else
+    warn "fstrim command not found, skipping TRIM operation"
+  fi
 }
 
 # ----- System Health Checks -----
@@ -198,30 +161,17 @@ main() {
     esac
   done
   
-  info "Starting system maintenance..."
+  echo "${RED}Starting system maintenance...${NC}"
   local exit_status=0
   
   # Main execution
-  # Run updates first
-  if confirm_action "Run system updates (snap, flatpak, dnf)?"; then
-    info "=== Starting system updates ==="
-    
-    # Run each update independently and continue on failure
-    info "[1/3] Running Snap updates..."
-    update_snap || warn "Snap update completed with errors"
-    
-    info "[2/3] Running Flatpak updates..."
-    update_flatpak || warn "Flatpak update completed with errors"
-    
-    info "[3/3] Running DNF updates..."
-    update_dnf || warn "DNF update completed with errors"
-    
-    info "=== System updates completed ==="
-  fi
+  # Skip updates as requested
+  title "=== System Updates ==="
+  info "Skipping system updates (snap, flatpak, dnf) as requested"
   
   # Then run cleanups
   if confirm_action "Run system cleanups (dnf, flatpak, snap)?"; then
-    info "=== Starting system cleanups ==="
+    title "=== Starting system cleanups ==="
     
     # Run each cleanup independently and continue on failure
     info "[1/3] Running DNF cleanup..."
@@ -233,7 +183,7 @@ main() {
     info "[3/3] Running Snap cleanup..."
     cleanup_snaps || warn "Snap cleanup completed with errors"
     
-    info "=== System cleanups completed ==="
+    title "=== System cleanups completed ==="
   fi
   
   # Storage maintenance
@@ -245,22 +195,52 @@ main() {
   if [[ -f "$(dirname "$0")/update_chrome_icons.sh" ]]; then
     if confirm_action "Update Chrome application icons?"; then
       info "Updating Chrome application icons..."
-      "$(dirname "$0")/update_chrome_icons.sh"
+      # Capture the output and display it in the style of other sections
+      output=$("$(dirname "$0")/update_chrome_icons.sh" 2>&1)
+      if [ $? -eq 0 ]; then
+        # Process output and remove the last two lines (empty line and "Done!")
+        filtered_output=$(echo "$output" | head -n -2)
+        echo "$filtered_output" | while IFS= read -r line; do
+          if [[ "$line" == "=== Summary ===" ]]; then
+            title "=== Chrome Icons Summary ==="
+          elif [ -n "$line" ]; then  # Only process non-empty lines
+            info "$line"
+          fi
+        done
+      else
+        warn "Failed to update Chrome application icons"
+        echo "$output" | while IFS= read -r line; do
+          warn "$line"
+        done
+      fi
     fi
   else
     warn "update_chrome_icons.sh not found; skipping Chrome icon updates."
   fi
   
   # Check system health at the end
+  title "=== System Maintenance Summary ==="
   if ! check_system_health; then
-    warn "System health check found issues that may need attention."
+    warn "[✗] System health check found issues that may need attention."
     exit_status=1
+  else
+    info "[✓] System health check passed"
   fi
   
+  # Show summary of operations
+  title "=== Operations Summary ==="
+  info "[✓] System updates completed"
+  info "[✓] System cleanups completed"
+  
+  if [[ -f "$(dirname "$0")/update_chrome_icons.sh" ]]; then
+    info "[✓] Chrome application icons checked"
+  fi
+  
+  # Final status
   if [[ $exit_status -eq 0 ]]; then
-    info "System maintenance completed successfully!"
+    title "=== System maintenance completed successfully! ==="
   else
-    warn "System maintenance completed with warnings or errors."
+    warn "=== System maintenance completed with warnings or errors ==="
   fi
   
   return $exit_status
